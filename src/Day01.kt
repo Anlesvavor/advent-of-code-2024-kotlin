@@ -1,18 +1,31 @@
+import kotlin.math.abs
+
 fun main() {
+    fun parseLocationLists(input: List<String>): Pair<List<Int>, List<Int>> {
+        return input
+            .map {
+                val p = it.split("   ")
+                p[0].toInt() to p[1].toInt()
+            }
+            .unzip()
+    }
+
     fun part1(input: List<String>): Int {
-        return input.size
+        val (firstList, secondList) = parseLocationLists(input)
+        return firstList
+            .sorted()
+            .zip(secondList.sorted())
+            .sumOf { abs(it.first - it.second) }
     }
 
     fun part2(input: List<String>): Int {
-        return input.size
+        val (firstList, secondList) = parseLocationLists(input)
+        val countsOnSecondList = secondList.groupBy { it }.mapValues { it.value.count() }
+        return firstList.sumOf {
+            countsOnSecondList.getOrDefault(it, 0).times(it)
+        }
     }
 
-    // Test if implementation meets criteria from the description, like:
-    check(part1(listOf("test_input")) == 1)
-
-    // Or read a large test input from the `src/Day01_test.txt` file:
-    val testInput = readInput("Day01_test")
-    check(part1(testInput) == 1)
 
     // Read the input from the `src/Day01.txt` file.
     val input = readInput("Day01")
