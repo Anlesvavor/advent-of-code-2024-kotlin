@@ -14,24 +14,13 @@ sealed class Instruction {
 }
 
 fun parseMult(s: String): Int? {
+    fun String.hasValidLength() = length in 1..3
     val prefix = "mul("
-    if (!s.startsWith(prefix)) {
-        return null
-    }
-    val n = s.drop(prefix.length).takeWhile(Char::isDigit).take(3)
-    if (n.length !in IntRange(1, 3)) {
-        return null
-    }
-    if (s.drop(prefix.length + n.length).take(1) != ",") {
-        return null
-    }
-    val m = s.drop(prefix.length + n.length + 1).takeWhile(Char::isDigit).take(3)
-    if (m.length !in IntRange(1, 3)) {
-        return null
-    }
-    if (s.drop(prefix.length + n.length + 1 + m.length).take(1) != ")") {
-        return null
-    }
+    if (!s.startsWith(prefix)) { return null }
+    val n = s.drop(prefix.length).takeWhile(Char::isDigit).take(3).takeIf(String::hasValidLength) ?: return null
+    if (s.drop(prefix.length + n.length).take(1) != ",") { return null }
+    val m = s.drop(prefix.length + n.length + 1).takeWhile(Char::isDigit).take(3).takeIf(String::hasValidLength) ?: return null
+    if (s.drop(prefix.length + n.length + 1 + m.length).take(1) != ")") { return null }
     return m.toInt() * n.toInt()
 }
 
@@ -61,9 +50,10 @@ fun main() {
                 when (i) {
                     is Instruction.DoStatement -> true to sum
                     is Instruction.DontStatement -> false to sum
-                    is Instruction.MultResult -> enabled to if (enabled) sum.plus(i.result) else sum
+                    is Instruction.MultResult -> enabled to if (enabled) sum + i.result else sum
                 }
-            }.second
+            }
+                .second
     }
 
     readInput("Day03_test").let {
