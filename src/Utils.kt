@@ -29,3 +29,7 @@ fun <T> Sequence<T>.headTail(): Pair<T?, Sequence<T>> {
 fun <T> Iterable<T>.headTail(): Pair<T?, Iterable<T>> {
     return firstOrNull() to drop(1)
 }
+
+fun <A, R> Pair<A, A>.map(transform: (A) -> R): Pair<R, R> {
+    return transform(first) to transform(second)
+}
