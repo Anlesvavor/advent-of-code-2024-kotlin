@@ -1,14 +1,6 @@
 
 tailrec fun gcd(a: Long, b: Long): Long = if (b == 0L) a else gcd(b, a.mod(b))
 
-inline fun <T> tryOrNull(block: () -> T): T? {
-    return try {
-        block()
-    } catch (e: Exception) {
-        null
-    }
-}
-
 data class Rational(val numerator: Long, val denominator: Long) {
 
     fun simplify(): Rational {

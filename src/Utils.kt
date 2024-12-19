@@ -33,3 +33,19 @@ fun <T> Iterable<T>.headTail(): Pair<T?, Iterable<T>> {
 fun <A, R> Pair<A, A>.map(transform: (A) -> R): Pair<R, R> {
     return transform(first) to transform(second)
 }
+
+inline fun <T> tryOrNull(block: () -> T): T? {
+    return try {
+        block()
+    } catch (e: Exception) {
+        null
+    }
+}
+
+fun <T> Iterable<T>.productOf(transform: (T) -> Int): Int {
+    return fold(1) { acc, i -> transform(i).times(acc) }
+}
+
+fun Iterable<Int>.product(): Int {
+    return fold(1) { acc, i -> i.times(acc) }
+}
