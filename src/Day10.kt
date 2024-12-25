@@ -7,8 +7,6 @@ internal data class HillTile(val value: Int, val coord: Coord) {
 
 }
 
-//typealias TileMatrix = List<Tile>
-
 inline fun <reified T> Map<Pair<Int, Int>, T>.neighborsOf(coord: Pair<Int,Int>): Map<Pair<Int, Int>, T> {
     return listOf(Orientation.TOP, Orientation.RIGHT, Orientation.BOTTOM, Orientation.LEFT)
         .mapNotNull { neighborOf<T>(coord, it) }

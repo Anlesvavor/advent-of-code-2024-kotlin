@@ -17,7 +17,7 @@ private fun Orientation.rotatedClockwise(): Orientation = when (this) {
     Orientation.TOP_LEFT -> TODO()
 }
 
-sealed class Tile(open val row: Int, open val col: Int) {
+internal sealed class Tile(open val row: Int, open val col: Int) {
     data class Obstruction(override val row: Int, override val col: Int): Tile(row, col)
     data class Free(override val row: Int, override val col: Int): Tile(row, col) {
         fun toStepped() = Stepped(row, col)
@@ -25,7 +25,7 @@ sealed class Tile(open val row: Int, open val col: Int) {
     data class Stepped(override val row: Int, override val col: Int): Tile(row, col)
 }
 
-fun List<Tile>.partitionTiles(): Triple<List<Tile.Obstruction>, List<Tile.Free>, List<Tile.Stepped>> {
+private fun List<Tile>.partitionTiles(): Triple<List<Tile.Obstruction>, List<Tile.Free>, List<Tile.Stepped>> {
     return fold(Triple<List<Tile.Obstruction>, List<Tile.Free>, List<Tile.Stepped>>(emptyList(), emptyList(), emptyList())) { acc, tile ->
         when (tile) {
             is Tile.Obstruction -> Triple(acc.first.plus(tile), acc.second, acc.third)
@@ -35,7 +35,7 @@ fun List<Tile>.partitionTiles(): Triple<List<Tile.Obstruction>, List<Tile.Free>,
     }
 }
 
-fun List<Tile>.toString(dimensions: Pair<Int, Int>): String {
+private fun List<Tile>.toString(dimensions: Pair<Int, Int>): String {
     val (height, width) = dimensions
     var matrix = IntRange(0, height * width).map { '_' }.toCharArray()
     forEach { tile ->
@@ -61,7 +61,7 @@ data class Guard(val row: Int, val col: Int, val orientation: Orientation) {
             else -> null
         }?.let { Guard(row, col, it) }
     }
-    fun walkedAhead(tiles: List<Tile>): Pair<Guard?, List<Tile>>? {
+    internal fun walkedAhead(tiles: List<Tile>): Pair<Guard?, List<Tile>>? {
         return when(orientation) {
             Orientation.TOP -> {
                 val (obstructionsInPath, freeTilesInPath, steppedTilesInPath) = tiles

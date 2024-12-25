@@ -58,6 +58,39 @@ fun main() {
             .product()
     }
 
+    fun part2(input: List<String>, dimen: Pair<Int, Int> = 103 to 101, seconds: Int = 100): Int {
+        var drones = parseInput(input)
+        val height = dimen.first
+        val width = dimen.second
+        fun step(drones: List<Drone>): List<Drone> {
+            return drones.map {
+                it.apply {
+                    coord = coord.first.plus(vy).mod(height) to coord.second.plus(vx).mod(width)
+                }
+            }
+        }
+        fun canBuildTree(drones: List<Drone>): Boolean {
+            return false
+        }
+        repeat(seconds) {
+            drones = step(drones)
+        }
+        val dronesByQuadrant = drones.groupBy {
+            when {
+                it.coord.first in 0..<height.div(2) && it.coord.second in 0..<width.div(2) -> 2
+                it.coord.first in 0..<height.div(2) && it.coord.second in width.div(2).inc()..<width -> 1
+                it.coord.first in height.div(2).inc()..<height && it.coord.second in 0..<width.div(2) -> 3
+                it.coord.first in height.div(2).inc()..<height && it.coord.second in width.div(2).inc()..<width -> 4
+                else -> -1
+            }
+        }
+        return  dronesByQuadrant
+            .mapValues { it.value.count() }
+            .filterKeys { it != -1 }
+            .values
+            .product()
+    }
+
     readInput("Day14_test").let {
         part1(it, dimen = 7 to 11).println()
     }
