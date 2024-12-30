@@ -1,4 +1,5 @@
-import java.util.PriorityQueue
+import kotlin.Float
+import kotlin.math.pow
 
 fun <X, R> ((X) -> R).memoized(): (X) -> R {
     val cache = mutableMapOf<X, R>()
@@ -21,6 +22,13 @@ fun <A, B> Pair<A?, B?>.takeIfBothNotNullOrNull(): Pair<A, B>? {
     } else null
 }
 
+fun Int.squared(): Int = this * this
+
+fun Int.squareRoot(): Float = this.toFloat().pow(2)
+
+fun Coord.distanceTo(other: Coord): Float {
+    return first.distanceTo(other.first).squared().plus(second.distanceTo(other.second).squared()).squareRoot()
+}
 sealed class MazeTile() {
     abstract var row: Row
     abstract var col: Col
@@ -144,7 +152,12 @@ fun List<MazeTile>.buildPaths(log: (List<Triple<MazeTile, Orientation, Int>>) ->
     val start: MazeTile = single { it is MazeTile.Start }
     val end: MazeTile = single { it is MazeTile.End }
     val neighborsMap = buildNeighborsMap()
-    tailrec fun aux(acc: List<List<Triple<MazeTile, Orientation, Int>>>, stack: List<List<Triple<MazeTile, Orientation, Int>>>): List<List<Triple<MazeTile, Orientation, Int>>> {
+    tailrec fun aux(
+        acc: List<List<Triple<MazeTile, Orientation, Int>>>,
+        stack: List<List<Triple<MazeTile, Orientation, Int>>>,
+        countDown: Int
+    ): List<List<Triple<MazeTile, Orientation, Int>>> {
+        if (countDown <= 0) { return acc }
         val (stackHead, stackTail) = stack.headTail()
         if (stackHead.isNullOrEmpty()) { return acc }
         check(stackHead.isNotEmpty())
@@ -153,14 +166,15 @@ fun List<MazeTile>.buildPaths(log: (List<Triple<MazeTile, Orientation, Int>>) ->
         if (head.first == end) {
             log(stackHead)
             val newAcc = acc.plusElement(stackHead)
-            return aux(newAcc, stackTail.toList())
+            stackHead
+            return aux(newAcc, stackTail.toList(), countDown)
         }
         val nextTiles: Map<Orientation, MazeTile> = neighborsMap.getOrDefault(head.first.coord, emptyMap()).filterNot { it.key == head.second.opposite }
 //        val nextTiles = computeNextTiles(neighborsMap.getValue(head.first.coord), head)
         if (nextTiles.isEmpty()) {
             log(stackHead)
             val newAcc = acc.plusElement(stackHead)
-            return aux(newAcc, stackTail.toList())
+            return aux(newAcc, stackTail.toList(), countDown)
         }
         val (_cyclingPaths, directPaths) = nextTiles.partition { (_, nextTile) ->
             tail.any { it.first == nextTile }
@@ -174,7 +188,14 @@ fun List<MazeTile>.buildPaths(log: (List<Triple<MazeTile, Orientation, Int>>) ->
             }
             newPath
         }
-        return aux(acc, stackTail.plus(newPaths))
+        val newStackTail = stackTail.plus(newPaths)
+            .partition { it.any { it.first == end } }
+            .let { (hasEnd, incomplete) ->
+                hasEnd + (incomplete.sortedBy {
+                    it.first().first.coord.distanceTo(end.coord)
+                })
+            }
+        return aux(acc, newStackTail, countDown.dec())
 //        return aux(acc, stackTail.plus(newPaths))
 //        val newPaths = nextTiles
 //            .map { nextTilePath ->
@@ -183,11 +204,11 @@ fun List<MazeTile>.buildPaths(log: (List<Triple<MazeTile, Orientation, Int>>) ->
 //                }
 //                tail.plus(directPath)
 //            }
-        return aux(acc, stackTail.plus(newPaths))
+//        return aux(acc, stackTail.plus(newPaths))
     }
 //    val startingStack = nextOf(start).map { listOf(Triple(it.value, it.key, 1)) }
     val startingStack = listOf(listOf(Triple(start, Orientation.RIGHT, 0)))
-    return aux(emptyList(), startingStack)
+    return aux(emptyList(), startingStack, 100000)
 }
 
 fun pathToString(height: Int, width: Int, maze: List<MazeTile>, path: List<Triple<MazeTile, Orientation, Int>>): String {
@@ -221,7 +242,7 @@ fun main() {
         val paths = maze
             .buildPaths(
                 log = {
-                    pathToString(input.height, input.width, maze, it).println()
+//                    pathToString(input.height, input.width, maze, it).println()
                 }
             )
             .filter {
@@ -232,7 +253,7 @@ fun main() {
             it.sumOf { it.third }
         }
         val best =  pathsOrdered.first()
-//        pathToString(input.height, input.width, maze, best).println()
+        pathToString(input.height, input.width, maze, best).println()
         return best.sumOf { it.third }
     }
 
